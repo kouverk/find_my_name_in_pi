@@ -1,4 +1,4 @@
-# Find My Name in Pi
+# Find My Name in Pi (for fun 🤩)
 
 Search for any name encoded as digits within the first 200 billion digits of pi.
 
