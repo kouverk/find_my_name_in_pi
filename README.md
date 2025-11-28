@@ -5,14 +5,14 @@ Search for any name encoded as digits within the first 200 billion digits of pi.
 ## The Idea
 
 Every name can be encoded as a sequence of digits using a simple letter-to-number mapping (a=1, b=2, ... z=26). For example:
-- "kouver" → "1115212518"
+- "kouver" → "11152122518"
 - "chelsea" → "3851253151"
 
 Given enough digits of pi, any finite sequence should eventually appear. This project searches through 200 billion digits to find where your name appears.
 
 ## Results
 
-**"kouver" (1115212518) was found at position 109,182,413,982** in the digits of pi.
+**"kouver" (11152122518) was found at position 109,182,413,981** in the digits of pi.
 
 | Digits Searched | Probability of Finding "kouver" |
 |-----------------|----------------------------------|
