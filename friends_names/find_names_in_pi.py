@@ -25,9 +25,9 @@ RESULTS_FILE = SCRIPT_DIR / "results.md"
 PI_DATA_DIR = Path(__file__).parent.parent / "pi_data"
 
 
-def calculate_probability(pattern_length: int, total_digits: int) -> float:
-    """Calculate probability of finding a pattern in n digits."""
-    return 1 - (1 - 10 ** (-pattern_length)) ** total_digits
+def calculate_prob_not_found(pattern_length: int, total_digits: int) -> float:
+    """Calculate probability of NOT finding a pattern in n digits."""
+    return (1 - 10 ** (-pattern_length)) ** total_digits
 
 
 def get_total_digits() -> int:
@@ -64,7 +64,7 @@ def main():
         name_info[name] = {
             "encoded": encoded,
             "length": len(encoded),
-            "probability": calculate_probability(len(encoded), total_digits)
+            "prob_not_found": calculate_prob_not_found(len(encoded), total_digits)
         }
 
     print(f"Encoded {len(patterns)} patterns")
@@ -88,7 +88,7 @@ def main():
             "name": name,
             "encoded": info["encoded"],
             "length": info["length"],
-            "probability": info["probability"],
+            "prob_not_found": info["prob_not_found"],
             "found": position != -1,
             "position": position
         })
@@ -116,20 +116,20 @@ def main():
 
         # Found names table (sorted by position)
         f.write("## Found in Pi\n\n")
-        f.write("| Name | Encoded | Digits | Position | Probability |\n")
+        f.write("| Name | Encoded | Digits | Position | P(not found) |\n")
         f.write("|------|---------|--------|----------|-------------|\n")
 
         for r in sorted([r for r in final_results if r["found"]], key=lambda x: x["position"]):
-            f.write(f"| {r['name']} | {r['encoded']} | {r['length']} | {r['position']:,} | {r['probability']*100:.2f}% |\n")
+            f.write(f"| {r['name']} | {r['encoded']} | {r['length']} | {r['position']:,} | {r['prob_not_found']:.2e} |\n")
 
         # Not found names table (sorted by pattern length, longest first)
         if not_found_count > 0:
             f.write("\n## Not Found in Pi\n\n")
-            f.write("| Name | Encoded | Digits | Probability |\n")
+            f.write("| Name | Encoded | Digits | P(not found) |\n")
             f.write("|------|---------|--------|-------------|\n")
 
             for r in sorted([r for r in final_results if not r["found"]], key=lambda x: -x["length"]):
-                f.write(f"| {r['name']} | {r['encoded']} | {r['length']} | {r['probability']*100:.2f}% |\n")
+                f.write(f"| {r['name']} | {r['encoded']} | {r['length']} | {r['prob_not_found']:.2e} |\n")
 
     print(f"Done! Results written to {RESULTS_FILE}")
 

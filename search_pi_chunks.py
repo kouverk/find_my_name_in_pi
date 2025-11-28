@@ -14,9 +14,9 @@ from tqdm import tqdm
 
 
 def encode_name(name: str) -> str:
-    """Convert a name to its numeric representation (a=1, b=2, etc.)"""
+    """Convert a name to its numeric representation (a=0, b=1, ..., z=25)"""
     alphabet = 'abcdefghijklmnopqrstuvwxyz'
-    return ''.join([str(alphabet.index(s.lower()) + 1) for s in name if s.lower() in alphabet])
+    return ''.join([str(alphabet.index(s.lower())) for s in name if s.lower() in alphabet])
 
 
 def search_file(filepath: str, pattern: bytes, chunk_size: int = 100_000_000, show_progress: bool = True) -> tuple[int, int]:
@@ -37,7 +37,7 @@ def search_file(filepath: str, pattern: bytes, chunk_size: int = 100_000_000, sh
     with open(filepath, 'rb') as f:
         with mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
             if show_progress:
-                with tqdm(total=file_size, desc=f"Searching {Path(filepath).name}", unit="B", unit_scale=True) as pbar:
+                with tqdm(total=file_size, desc=f"{Path(filepath).name}", unit="B", unit_scale=True, ncols=80) as pbar:
                     result = mm.find(pattern)
                     pbar.update(file_size)
                     return (result, file_size)
@@ -75,8 +75,8 @@ def search_file_multi(filepath: str, patterns: dict[str, bytes], chunk_size: int
 
     with open(filepath, 'rb') as f:
         with mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
-            pbar = tqdm(total=file_size, desc=f"Searching {Path(filepath).name}",
-                       unit="B", unit_scale=True) if show_progress else None
+            pbar = tqdm(total=file_size, desc=f"{Path(filepath).name}",
+                       unit="B", unit_scale=True, ncols=80) if show_progress else None
 
             try:
                 pos = 0
