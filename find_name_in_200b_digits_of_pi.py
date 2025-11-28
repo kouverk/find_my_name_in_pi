@@ -6,52 +6,65 @@ Usage: python find_name_in_200b_digits_of_pi.py <name>
 
 This script:
 1. Checks if pi digit files are downloaded
-2. Searches through all files efficiently
+2. Searches through all files efficiently using memory-mapped I/O
 3. Also tries shorter versions of the name if full name not found
 
-probability of finding kouver are as follows: 
+Probability of finding "kouver" (10 digits):
 
-
-Digits	Probability
-1 million	0.001%
-10 million	0.01%
-100 million	0.10%
-200 million	0.20%
-500 million	0.50%
-1 billion	1.00%
-100 billion	63.21%
-200 billion	86.47% <--- found at 109,182,413,982
-500 billion	99.33%
+Digits          Probability
+1 million       0.001%
+10 million      0.01%
+100 million     0.10%
+1 billion       1.00%
+100 billion     63.21%
+200 billion     86.47% <--- found at 109,182,413,982
+500 billion     99.33%
 """
 
 import sys
 from pathlib import Path
 
+from search_pi_chunks import encode_name, search_all_files
+
 # Configuration
 PI_DATA_DIR = Path(__file__).parent / "pi_data"
-
-
-def encode_name(name: str) -> str:
-    """Convert a name to its numeric representation (a=1, b=2, etc.)"""
-    alphabet = 'abcdefghijklmnopqrstuvwxyz'
-    return ''.join([str(alphabet.index(s.lower()) + 1) for s in name if s.lower() in alphabet])
 
 
 def check_files_exist() -> bool:
     """Check if pi digit files are downloaded."""
     if not PI_DATA_DIR.exists():
         return False
-
-    txt_files = list(PI_DATA_DIR.glob("*.txt"))
-    return len(txt_files) > 0
+    return len(list(PI_DATA_DIR.glob("*.txt"))) > 0
 
 
 def get_total_digits() -> int:
     """Get total number of digits available."""
-    total = 0
-    for f in sorted(PI_DATA_DIR.glob("*.txt")):
-        total += f.stat().st_size
-    return total
+    return sum(f.stat().st_size for f in PI_DATA_DIR.glob("*.txt"))
+
+
+def calculate_probability(pattern_length: int, total_digits: int) -> float:
+    """Calculate probability of finding a pattern in n digits."""
+    return 1 - (1 - 10 ** (-pattern_length)) ** total_digits
+
+
+def search_name(name: str, show_progress: bool = True, quiet: bool = False) -> tuple[int, str, int]:
+    """
+    Search for a name in pi digits.
+
+    Args:
+        name: The name to search for
+        show_progress: Whether to show progress bars
+        quiet: If True, suppress all output
+
+    Returns:
+        Tuple of (position, encoded_pattern, total_digits) or (-1, encoded, total) if not found
+    """
+    encoded = encode_name(name)
+    pattern = encoded.encode('utf-8')
+
+    position, total_digits = search_all_files(PI_DATA_DIR, pattern, show_progress=show_progress)
+
+    return position, encoded, total_digits
 
 
 def main():
@@ -91,54 +104,43 @@ def main():
     print()
 
     # Calculate probability
-    prob = 1 - (1 - 10**(-len(encoded))) ** total_digits
+    prob = calculate_probability(len(encoded), total_digits)
     print(f"📈 Probability of finding in {total_digits:,} digits: {prob*100:.2f}%")
     print()
     print("=" * 60)
     print()
 
     # Run the search
-    from search_pi_chunks import search_file, encode_name as enc
+    position, encoded, _ = search_name(name, show_progress=True)
 
-    pattern = enc(name).encode('utf-8')
-    files = sorted(PI_DATA_DIR.glob("*.txt"))
+    if position != -1:
+        # Read context around the match
+        files = sorted(PI_DATA_DIR.glob("*.txt"))
+        offset = 0
+        for filepath in files:
+            file_size = filepath.stat().st_size
+            if offset + file_size > position:
+                # Match is in this file
+                file_pos = position - offset + 1  # +1 for decimal point adjustment
+                with open(filepath, 'rb') as f:
+                    f.seek(max(0, file_pos - 15))
+                    context = f.read(len(encoded) + 30).decode('utf-8', errors='ignore')
+                break
+            offset += file_size
+        else:
+            context = ""
 
-    total_searched = 0
-    found = False
-
-    for filepath in files:
-        filepath_str = str(filepath)
-        position, file_size = search_file(filepath_str, pattern)
-
-        if position != -1:
-            # Adjust position: subtract 1 to exclude the "." (keep the "3")
-            # File starts with "3.14159..." so position 0 = "3", position 1 = ".", position 2 = "1"
-            adjusted_position = total_searched + position - 1 if total_searched == 0 else total_searched + position
-
-            # Read context
-            with open(filepath_str, 'rb') as f:
-                f.seek(max(0, position - 15))
-                context = f.read(len(pattern) + 30).decode('utf-8', errors='ignore')
-
-            print()
-            print("=" * 60)
-            print(f"🎉 FOUND '{name}' IN PI!")
-            print("=" * 60)
-            print(f"  Position: {adjusted_position:,}")
-            print(f"  File: {filepath.name}")
-            print(f"  Context: ...{context}...")
-            print("=" * 60)
-            found = True
-            break
-
-        total_searched += file_size
-        print(f"  Searched {total_searched:,} digits so far...")
-        print()
-
-    if not found:
         print()
         print("=" * 60)
-        print(f"😢 '{name}' ({encoded}) not found in {total_searched:,} digits")
+        print(f"🎉 FOUND '{name}' IN PI!")
+        print("=" * 60)
+        print(f"  Position: {position:,}")
+        print(f"  Context: ...{context}...")
+        print("=" * 60)
+    else:
+        print()
+        print("=" * 60)
+        print(f"😢 '{name}' ({encoded}) not found in {total_digits:,} digits")
         print("=" * 60)
         print()
         print("Let's try shorter versions of the name...")
@@ -147,18 +149,14 @@ def main():
         # Try progressively shorter versions
         for length in range(len(name) - 1, 1, -1):
             partial_name = name[:length]
-            partial_pattern = enc(partial_name).encode('utf-8')
+            partial_encoded = encode_name(partial_name)
 
-            print(f"Trying '{partial_name}' ({enc(partial_name)})...")
+            print(f"Trying '{partial_name}' ({partial_encoded})...")
 
-            for filepath in files:
-                position, _ = search_file(str(filepath), partial_pattern)
-                if position != -1:
-                    print(f"  ✓ Found '{partial_name}' at position {position:,} in {filepath.name}")
-                    break
-            else:
-                continue
-            break
+            position, _, _ = search_name(partial_name, show_progress=False)
+            if position != -1:
+                print(f"  ✓ Found '{partial_name}' at position {position:,}")
+                break
 
 
 if __name__ == '__main__':
