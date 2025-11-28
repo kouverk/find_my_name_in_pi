@@ -50,6 +50,17 @@ Example:
 python find_name_in_200b_digits_of_pi.py chelsea
 ```
 
+### 3. Batch Search (Friends' Names)
+
+Want to search for multiple names at once? The `friends_names/` folder contains a batch search tool:
+
+```bash
+cd friends_names
+python find_names_in_pi.py
+```
+
+This reads names from `names.txt` (one per line), searches for each in pi, and outputs a markdown table to `results.md` showing which names were found and at what position.
+
 ## Project Structure
 
 ```
@@ -60,6 +71,10 @@ find_my_name_in_pi/
 ├── pi_data/                            # Pi digit files (not in repo)
 │   ├── pi_dec_1t_01.txt               # First 100 billion digits
 │   └── pi_dec_1t_02.txt               # Second 100 billion digits
+├── friends_names/                      # Batch search for a list of names
+│   ├── find_names_in_pi.py            # Batch search script
+│   ├── names.txt                      # List of names to search
+│   └── results.md                     # Search results (generated)
 └── previous attempts/                  # Earlier iterations of the project
 ```
 
@@ -75,6 +90,11 @@ The search engine that powers the main script. Uses memory-mapped file I/O (`mma
 
 **[download_pi_archive.sh](download_pi_archive.sh)**
 Shell script to download pi digits from archive.org. Downloads two zip files containing 100 billion digits each, then extracts them. Supports resumable downloads and skips already-downloaded files.
+
+### Batch Search
+
+**[friends_names/find_names_in_pi.py](friends_names/find_names_in_pi.py)**
+Batch search script that reads a list of names from `names.txt` and searches for each one in the pi digits. Outputs results to `results.md` as a markdown table sorted by position found. Shows name, encoded digits, pattern length, position in pi, and probability of finding it. The included `names.txt` was extracted from Instagram as a sample list of names.
 
 ### Pi Data
 
