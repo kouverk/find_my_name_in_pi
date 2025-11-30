@@ -116,16 +116,16 @@ def main():
 
         # Found names table (sorted by position)
         f.write("## Found in Pi\n\n")
-        f.write("| Name | Encoded | Digits | Position | P(not found) |\n")
-        f.write("|------|---------|--------|----------|-------------|\n")
+        f.write("| Name | Position | Encoded | Digits | Probability |\n")
+        f.write("|------|----------|---------|--------|-------------|\n")
 
         for r in sorted([r for r in final_results if r["found"]], key=lambda x: x["position"]):
-            f.write(f"| {r['name']} | {r['encoded']} | {r['length']} | {r['position']:,} | {r['prob_not_found']:.2e} |\n")
+            f.write(f"| {r['name']} | {r['position']:,} | {r['encoded']} | {r['length']} | {r['prob_not_found']:.2e} |\n")
 
         # Not found names table (sorted by pattern length, longest first)
         if not_found_count > 0:
             f.write("\n## Not Found in Pi\n\n")
-            f.write("| Name | Encoded | Digits | P(not found) |\n")
+            f.write("| Name | Encoded | Digits | Probability |\n")
             f.write("|------|---------|--------|-------------|\n")
 
             for r in sorted([r for r in final_results if not r["found"]], key=lambda x: -x["length"]):
