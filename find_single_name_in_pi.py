@@ -1,24 +1,13 @@
 #!/usr/bin/env python3
 """
-Find a name in 200 billion digits of pi
+Find a name in pi digits
 
-Usage: python find_name_in_200b_digits_of_pi.py <name>
+Usage: python find_single_name_in_pi.py <name>
 
 This script:
 1. Checks if pi digit files are downloaded
-2. Searches through all files efficiently using memory-mapped I/O
+2. Searches through all available files efficiently using memory-mapped I/O
 3. Also tries shorter versions of the name if full name not found
-
-Probability of finding "kouver" (10 digits):
-
-Digits          Probability
-1 million       0.001%
-10 million      0.01%
-100 million     0.10%
-1 billion       1.00%
-100 billion     63.21%
-200 billion     86.47% <--- found at 109,182,413,982
-500 billion     99.33%
 """
 
 import sys
@@ -70,14 +59,14 @@ def search_name(name: str, show_progress: bool = True, quiet: bool = False) -> t
 def main():
     # Get name from command line argument
     if len(sys.argv) < 2:
-        print("Usage: python find_name_in_200b_digits_of_pi.py <name>")
-        print("Example: python find_name_in_200b_digits_of_pi.py chelsea")
+        print("Usage: python find_single_name_in_pi.py <name>")
+        print("Example: python find_single_name_in_pi.py chelsea")
         sys.exit(1)
 
     name = sys.argv[1]
 
     print("=" * 60)
-    print(f"🥧 FIND '{name.upper()}' IN PI - 200 BILLION DIGIT SEARCH")
+    print(f"🥧 FIND '{name.upper()}' IN PI")
     print("=" * 60)
     print()
 

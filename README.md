@@ -1,6 +1,6 @@
 # Find My Name in Pi (for fun 🤩)
 
-Search for any name encoded as digits within the first 200 billion digits of pi.
+Search for any name encoded as digits within pi.
 
 ## The Idea
 
@@ -8,7 +8,7 @@ Every name can be encoded as a sequence of digits using a simple letter-to-numbe
 - "kouver" → "11152122518"
 - "chelsea" → "3851253151"
 
-Given enough digits of pi, any finite sequence should eventually appear. This project searches through 200 billion digits to find where your name appears.
+Given enough digits of pi, any finite sequence should eventually appear. This project searches through pi digits to find where your name appears.
 
 ## Results
 
@@ -32,7 +32,7 @@ Given enough digits of pi, any finite sequence should eventually appear. This pr
 ./download_pi_archive.sh
 ```
 
-This downloads 200 billion digits of pi from [archive.org](https://archive.org/download/pi_dec_1t) (~100GB compressed, ~200GB uncompressed). The download is resumable - if it fails, just run it again.
+This downloads pi digits from [archive.org](https://archive.org/download/pi_dec_1t). The download is resumable - if it fails, just run it again.
 
 **Tip:** Keep your computer awake during download:
 ```bash
@@ -42,12 +42,12 @@ caffeinate -i ./download_pi_archive.sh
 ### 2. Search for a Name
 
 ```bash
-python find_name_in_200b_digits_of_pi.py <name>
+python find_single_name_in_pi.py <name>
 ```
 
 Example:
 ```bash
-python find_name_in_200b_digits_of_pi.py chelsea
+python find_single_name_in_pi.py chelsea
 ```
 
 ### 3. Batch Search (Friends' Names)
@@ -61,18 +61,19 @@ python find_names_in_pi.py
 
 This reads names from `names.txt` (one per line), searches for all names in a **single pass** through the pi files, and outputs a markdown table to `results.md` showing which names were found and at what position.
 
-**Performance note:** The batch search uses an optimized multi-pattern algorithm that reads the 200GB of pi data once and checks all patterns simultaneously. This is ~100x faster than searching for each name individually (200GB total vs 200GB × N names).
+**Performance note:** The batch search uses an optimized multi-pattern algorithm that reads the pi data once and checks all patterns simultaneously. This is ~100x faster than searching for each name individually.
 
 ## Project Structure
 
 ```
 find_my_name_in_pi/
-├── find_name_in_200b_digits_of_pi.py  # Main search script
+├── find_single_name_in_pi.py           # Main search script for one name
 ├── search_pi_chunks.py                 # Memory-efficient search engine
 ├── download_pi_archive.sh              # Downloads pi digits from archive.org
 ├── pi_data/                            # Pi digit files (not in repo)
 │   ├── pi_dec_1t_01.txt               # First 100 billion digits
-│   └── pi_dec_1t_02.txt               # Second 100 billion digits
+│   ├── pi_dec_1t_02.txt               # Second 100 billion digits
+│   └── ...                            # Additional files as downloaded
 ├── friends_names/                      # Batch search for a list of names
 │   ├── find_names_in_pi.py            # Batch search script
 │   ├── names.txt                      # List of names to search
@@ -84,8 +85,8 @@ find_my_name_in_pi/
 
 ### Main Scripts
 
-**[find_name_in_200b_digits_of_pi.py](find_name_in_200b_digits_of_pi.py)**
-The main entry point. Takes a name as a command-line argument, encodes it to digits, calculates the probability of finding it, and searches through all available pi digit files. If the full name isn't found, it automatically tries progressively shorter versions.
+**[find_single_name_in_pi.py](find_single_name_in_pi.py)**
+The main entry point for searching a single name. Takes a name as a command-line argument, encodes it to digits, calculates the probability of finding it, and searches through all available pi digit files. If the full name isn't found, it automatically tries progressively shorter versions.
 
 **[search_pi_chunks.py](search_pi_chunks.py)**
 The search engine that powers both single and batch searches. Uses memory-mapped file I/O (`mmap`) to search through massive files without loading them entirely into RAM. Supports both single-pattern search (for individual names) and multi-pattern search (for batch operations). The multi-pattern mode reads files once and checks all patterns simultaneously.
@@ -100,10 +101,12 @@ Batch search script that reads a list of names from `names.txt` and searches for
 
 ### Pi Data
 
-The `pi_data/` folder contains the raw pi digit files:
+The `pi_data/` folder contains the raw pi digit files, each ~100GB:
 
-- **pi_dec_1t_01.txt** - First 100 billion digits of pi (~100GB)
-- **pi_dec_1t_02.txt** - Second 100 billion digits of pi (~100GB)
+- **pi_dec_1t_01.txt** - First 100 billion digits
+- **pi_dec_1t_02.txt** - Second 100 billion digits
+- **pi_dec_1t_03.txt** - Third 100 billion digits
+- ... up to **pi_dec_1t_10.txt** (1 trillion digits total available)
 
 These files are downloaded from the [Internet Archive's pi_dec_1t collection](https://archive.org/download/pi_dec_1t).
 
@@ -117,13 +120,7 @@ These files are downloaded from the [Internet Archive's pi_dec_1t collection](ht
 
 ### Performance
 
-| Search Type | Data Read | Time (estimated) |
-|-------------|-----------|------------------|
-| Single name | 200GB | ~5-10 min |
-| 100 names (naive) | 20TB | ~8-17 hours |
-| 100 names (optimized) | 200GB | ~5-10 min |
-
-The batch search optimization provides ~100x speedup for large lists of names.
+The batch search optimization provides ~100x speedup for large lists of names by reading files once instead of N times.
 
 ## Requirements
 
