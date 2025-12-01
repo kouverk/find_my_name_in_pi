@@ -1,3 +1,4 @@
 /pi_data/*
 /__pycache__/
 .DS_Store
+/friends_names/chelseas_friends.txt

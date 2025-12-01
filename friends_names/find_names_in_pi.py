@@ -114,21 +114,21 @@ def main():
         f.write(f"- **Found:** {found_count}\n")
         f.write(f"- **Not found:** {not_found_count}\n\n")
 
-        # Found names table (sorted by position)
+        # Found names table (sorted alphabetically by name)
         f.write("## Found in Pi\n\n")
         f.write("| Name | Position | Encoded | Digits | Probability |\n")
         f.write("|------|----------|---------|--------|-------------|\n")
 
-        for r in sorted([r for r in final_results if r["found"]], key=lambda x: x["position"]):
+        for r in sorted([r for r in final_results if r["found"]], key=lambda x: x["name"].lower()):
             f.write(f"| {r['name']} | {r['position']:,} | {r['encoded']} | {r['length']} | {r['prob_not_found']:.2e} |\n")
 
-        # Not found names table (sorted by pattern length, longest first)
+        # Not found names table (sorted alphabetically by name)
         if not_found_count > 0:
             f.write("\n## Not Found in Pi\n\n")
             f.write("| Name | Encoded | Digits | Probability |\n")
             f.write("|------|---------|--------|-------------|\n")
 
-            for r in sorted([r for r in final_results if not r["found"]], key=lambda x: -x["length"]):
+            for r in sorted([r for r in final_results if not r["found"]], key=lambda x: x["name"].lower()):
                 f.write(f"| {r['name']} | {r['encoded']} | {r['length']} | {r['prob_not_found']:.2e} |\n")
 
     print(f"Done! Results written to {RESULTS_FILE}")
